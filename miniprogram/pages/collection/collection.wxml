@@ -1,0 +1,50 @@
+<view class="collection-page">
+  <view class="nav">
+    <button class="back" bindtap="onBack">‹</button>
+    <view class="nav__title">
+      <text>收集册</text>
+      <text class="nav__subtitle">Collection · {{items.length}} 件</text>
+    </view>
+    <view class="nav__clear {{empty ? 'nav__clear--disabled' : ''}}" bindtap="onClearAll">
+      清空
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{empty}}" class="empty-state">
+    <view class="empty-state__icon">📦</view>
+    <text class="empty-state__title">收集册还是空的</text>
+    <text class="empty-state__desc">回到捕捉页面，框选你感兴趣的物体，它们会自动存入这里。</text>
+    <button class="empty-state__btn" bindtap="onBack">去捕捉 →</button>
+  </view>
+
+  <!-- 网格 -->
+  <scroll-view
+    wx:else
+    scroll-y
+    class="collection-grid"
+  >
+    <view class="grid-inner">
+      <view
+        wx:for="{{items}}"
+        wx:key="id"
+        class="collect-cell"
+        bindtap="onOpenDetail"
+        data-id="{{item.id}}"
+      >
+        <view class="collect-thumb">
+          <image src="{{item.previewPath}}" mode="aspectFit" class="collect-img" />
+          <view class="collect-type-tag collect-type-tag--{{item.type}}">
+            {{item.type === 'color' ? '颜色' : item.type === 'contour' ? '轮廓' : '物体'}}
+          </view>
+        </view>
+        <view class="collect-meta">
+          <text class="collect-time">{{item.timeLabel}}</text>
+          <view class="collect-delete" catchtap="onDelete" data-id="{{item.id}}">✕</view>
+        </view>
+        <view wx:if="{{item.color}}" class="collect-color" style="background: {{item.color.hex}};"></view>
+      </view>
+    </view>
+    <view class="grid-footer">已收集 {{items.length}} 件 · 点击查看大图</view>
+  </scroll-view>
+</view>

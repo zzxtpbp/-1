@@ -1,0 +1,169 @@
+<view class="clipboard-page">
+  <view class="nav">
+    <button class="back" bindtap="onBack" aria-label="返回现实捕捉页">‹</button>
+    <view class="nav__title">
+      <text>世界粘贴板</text>
+      <text class="nav__subtitle">World Clipboard</text>
+    </view>
+    <view class="nav__right">
+      <view class="nav__collection" bindtap="onOpenCollection">📚 收集册</view>
+      <view class="nav__type">{{typeLabel}}</view>
+    </view>
+  </view>
+
+  <view class="hero">
+    <view class="hero__glow"></view>
+    <object-preview type="{{item.type}}" color-hex="{{colorHex}}" src="{{cutoutImage}}" />
+    <view class="capture-badge">
+      <text class="capture-badge__dot"></text>{{hasRealCapture ? '实物已捕捉 · 匹配外形' : '已复制到剪贴板'}}
+    </view>
+  </view>
+
+  <view wx:if="{{item.type === 'color'}}" class="color-data">
+    <view class="color-data__swatch" style="background: {{colorHex}};"></view>
+    <view>
+      <text class="color-data__hex">{{colorHex}}</text>
+      <text class="color-data__rgb">RGB · {{rgbText}}</text>
+    </view>
+  </view>
+
+  <view class="templates-section">
+    <view class="section-heading">
+      <view>
+        <text class="eyebrow">PASTE PLUGINS</text>
+        <text class="section-title">转换为创意模板</text>
+      </view>
+      <text class="section-index">01</text>
+    </view>
+
+    <view class="template-grid">
+      <view wx:for="{{templates}}" wx:key="id" class="template-cell template-cell--{{item.widthClass}}">
+        <template-card template="{{item}}" bindselect="onTemplateSelect" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 网格类型结果：拼豆 / 像素 / LEGO / 十字绣 -->
+  <view
+    wx:if="{{showResult && templateKind !== 'sticker'}}"
+    id="result-section"
+    class="perler-section"
+  >
+    <view class="section-heading">
+      <view>
+        <text class="eyebrow">
+          {{templateKind === 'perler' ? 'PERLER RESULT' : templateKind === 'pixel' ? 'PIXEL ART' : templateKind === 'lego' ? 'LEGO RESULT' : 'CROSS STITCH'}}
+        </text>
+        <text class="section-title">
+          {{gridCols}} × {{gridRows}}
+          {{templateKind === 'perler' ? '拼豆图纸' : templateKind === 'pixel' ? '像素画' : templateKind === 'lego' ? 'LEGO 底板' : '十字绣图纸'}}
+        </text>
+      </view>
+      <text class="section-index">02</text>
+    </view>
+
+    <view class="perler-card">
+      <view
+        class="perler-grid perler-grid--{{templateKind}}"
+        style="width: 640rpx; height: {{640 * gridRows / gridCols}}rpx; grid-template-columns: repeat({{gridCols}}, 1fr); grid-template-rows: repeat({{gridRows}}, 1fr);"
+      >
+        <view
+          wx:for="{{gridCells}}"
+          wx:key="key"
+          class="bead {{item.empty ? 'bead--empty' : ''}} bead--{{templateKind}}"
+          style="background: {{item.empty ? '#F0F2F4' : item.color}};"
+        >
+          <text wx:if="{{templateKind === 'cross' && !item.empty && item.symbol}}" class="cross-symbol">{{item.symbol}}</text>
+        </view>
+      </view>
+
+      <view class="perler-meta">
+        <view class="meta-item"><text class="meta-label">GRID</text><text class="meta-value">{{gridCols}} × {{gridRows}}</text></view>
+        <view class="meta-item"><text class="meta-label">COLORS</text><text class="meta-value">{{gridColors.length}}</text></view>
+        <view class="meta-item"><text class="meta-label">{{templateKind === 'lego' ? 'BRICKS' : templateKind === 'cross' ? 'STITCHES' : templateKind === 'pixel' ? 'PIXELS' : 'BEADS'}}</text><text class="meta-value">{{gridTotalCells}}</text></view>
+      </view>
+    </view>
+
+    <button class="save-btn" bindtap="onSave" loading="{{saving}}" hover-class="save-btn--hover">
+      保存{{templateKind === 'perler' ? '拼豆' : templateKind === 'lego' ? 'LEGO' : templateKind === 'cross' ? '十字绣' : templateKind === 'pixel' ? '像素画' : '贴纸'}}图纸到手机
+    </button>
+
+    <view class="palette-list">
+      <view wx:for="{{gridColors}}" wx:key="id" class="palette-row">
+        <view class="palette-main">
+          <view class="palette-dot" style="background: {{item.hex}};"></view>
+          <view>
+            <text class="palette-name">{{item.name}}</text>
+            <text class="palette-code">
+              {{templateKind === 'cross' && item.symbol ? item.symbol + ' · ' : ''}}
+              {{item.id}} · {{item.hex}}
+            </text>
+          </view>
+        </view>
+        <text class="palette-count">× {{item.count}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 贴纸结果 -->
+  <view wx:if="{{showResult && templateKind === 'sticker'}}" id="result-section" class="perler-section">
+    <view class="section-heading">
+      <view>
+        <text class="eyebrow">STICKER RESULT</text>
+        <text class="section-title">贴纸成品</text>
+      </view>
+      <text class="section-index">02</text>
+    </view>
+
+    <view class="perler-card sticker-card">
+      <image wx:if="{{stickerImage}}" src="{{stickerImage}}" mode="widthFix" class="sticker-preview" />
+    </view>
+
+    <button class="save-btn" bindtap="onSave" loading="{{saving}}" hover-class="save-btn--hover">
+      保存贴纸到手机
+    </button>
+
+    <view class="sticker-tips">
+      <text class="sticker-tips__title">切割说明</text>
+      <text class="sticker-tips__desc">虚线外框为建议切割线，四角直角用于定位裁刀。贴纸含 8px 白色描边，适合直接打印裁切。</text>
+    </view>
+  </view>
+
+  <!-- 3D 模型结果 -->
+  <view wx:if="{{showResult && templateKind === 'relief'}}" id="result-section" class="perler-section">
+    <view class="section-heading">
+      <view>
+        <text class="eyebrow">3D MODEL</text>
+        <text class="section-title">浮雕 3D 模型</text>
+      </view>
+      <text class="section-index">02</text>
+    </view>
+
+    <view class="relief-card">
+      <view
+        class="relief-viewport"
+        bindtouchstart="onReliefTouchStart"
+        bindtouchmove="onReliefTouchMove"
+        bindtouchend="onReliefTouchEnd"
+      >
+        <canvas
+          type="webgl"
+          id="relief-canvas"
+          class="relief-canvas"
+        ></canvas>
+        <view class="relief-hint">
+          <text>单指拖动旋转 · 双指上下缩放</text>
+        </view>
+      </view>
+    </view>
+
+    <button class="save-btn" bindtap="onSave" loading="{{saving}}" hover-class="save-btn--hover">
+      保存 3D 截图到手机
+    </button>
+  </view>
+
+  <canvas type="2d" id="crop-canvas" class="offscreen-canvas"></canvas>
+  <canvas type="2d" id="result-canvas" class="offscreen-canvas"></canvas>
+
+  <view class="footer">CTRL+C THE REAL WORLD · CTRL+V ANYWHERE</view>
+</view>

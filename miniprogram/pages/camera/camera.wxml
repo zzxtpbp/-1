@@ -1,0 +1,82 @@
+<view class="camera-page">
+  <view
+    class="interaction-layer"
+    catchtouchstart="onTouchStart"
+    catchtouchmove="onTouchMove"
+    catchtouchend="onTouchEnd"
+    catchtouchcancel="onTouchCancel"
+  >
+  <canvas
+    wx:if="{{useVisionKit && !useMockScene}}"
+    class="camera-feed"
+    type="webgl"
+    id="visionkit-canvas"
+    aria-label="VisionKit 实时手势画面"
+  ></canvas>
+
+  <camera
+    wx:elif="{{!useMockScene}}"
+    class="camera-feed"
+    device-position="back"
+    flash="off"
+    mode="normal"
+    frame-size="medium"
+    bindinitdone="onCameraReady"
+    binderror="onCameraError"
+  ></camera>
+
+  <view wx:if="{{useMockScene}}" class="mock-scene" aria-label="摄像头模拟画面">
+    <view class="mock-scene__light"></view>
+    <view class="mock-scene__plant">
+      <view class="mock-scene__leaf mock-scene__leaf--one"></view>
+      <view class="mock-scene__leaf mock-scene__leaf--two"></view>
+      <view class="mock-scene__pot">GOOD<text>THINGS</text></view>
+    </view>
+    <view class="mock-scene__table"></view>
+  </view>
+
+  <view
+    wx:if="{{frameRect && (isFraming || isCopying)}}"
+    class="frame-box {{isCopying ? 'frame-box--locked' : ''}}"
+    style="left: {{frameRect.x * 100}}%; top: {{frameRect.y * 100}}%; width: {{frameRect.width * 100}}%; height: {{frameRect.height * 100}}%;"
+    aria-label="实物框选区域"
+  >
+    <view class="frame-box__corner frame-box__corner--tl"></view>
+    <view class="frame-box__corner frame-box__corner--tr"></view>
+    <view class="frame-box__corner frame-box__corner--bl"></view>
+    <view class="frame-box__corner frame-box__corner--br"></view>
+    <view wx:if="{{isCopying}}" class="frame-box__scan"></view>
+  </view>
+
+  <spatial-cursor
+    x="{{cursorX}}"
+    y="{{cursorY}}"
+    gesture="{{gesture}}"
+    visible="{{debugMode}}"
+  />
+
+  <view class="instruction {{isFraming ? 'instruction--active' : ''}}">
+    <text class="instruction__state">{{gesture}}</text>
+    <text>{{status}}</text>
+  </view>
+  </view>
+
+  <view class="topbar">
+    <view>
+      <view class="brand">世界粘贴板</view>
+      <view class="brand-subtitle">{{useMockScene ? 'World Clipboard · Mock' : handStatus}}</view>
+    </view>
+    <button class="debug-chip" catchtap="onToggleScene">
+      {{useMockScene ? 'MOCK' : 'CAMERA'}}
+    </button>
+  </view>
+
+  <view class="bottom-controls">
+    <capture-mode-selector active="{{mode}}" bindchange="onModeChange" />
+    <text class="bottom-hint">{{useVisionKit ? '捏合 = 起点 · 移动框选 · 松开 = 捕捉' : '拖动框住任意实物 · 松开自动捕捉'}}</text>
+  </view>
+
+  <view class="clipboard-target {{isCopying ? 'clipboard-target--active' : ''}}">
+    <view class="clipboard-target__paper"></view>
+  </view>
+</view>
